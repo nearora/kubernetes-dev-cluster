@@ -1,0 +1,171 @@
+#cloud-config
+
+---
+coreos:
+  etcd2:
+    name: "$public_ipv4"
+    initial-cluster-token: local-etcd
+    initial-cluster-state: new
+    initial-cluster: "$public_ipv4=http://$public_ipv4:2380"
+    advertise-client-urls: http://$public_ipv4:2379
+    initial-advertise-peer-urls: http://$public_ipv4:2380
+    listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
+    listen-peer-urls: http://$private_ipv4:2380,http://$private_ipv4:7001
+  fleet:
+    public-ip: "$public_ipv4"
+  flannel:
+    interface: "$public_ipv4"
+  units:
+  - name: etcd2.service
+    command: start
+    enable: true
+  - name: containerd.service
+    command: stop
+    enable: false
+  - name: etcd2.service
+    command: start
+  - name: fleet.service
+    command: stop
+    enable: false
+  - name: flanneld.service
+    drop-ins:
+    - name: 50-network-config.conf
+      content: |
+        [Service]
+        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \
+          '{ "Network": "192.168.0.0/16", "SubnetLen": "24", "SubnetMin": "192.168.241.0" "SubnetMax": "192.168.250.0" }'
+    command: stop
+    enable: false
+  - name: docker-tcp.socket
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      Description=Docker Socket for the API
+      After=docker.service
+
+      [Socket]
+      ListenStream=2375
+      Service=containerd.service
+      BindIPv6Only=both
+
+      [Install]
+      WantedBy=sockets.target
+  - name: docker-registry.service
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      After=docker.service
+
+      [Service]
+      Restart=on-failure
+      ExecStartPre=-/usr/bin/docker rm -f docker-registry
+      ExecStart=/usr/bin/docker run -p 5000:5000 --name docker-registry registry:2
+      ExecStop=-/usr/bin/docker rm -f docker-registry
+  - name: kubelet.service
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      After=docker.service
+
+      [Service]
+      Restart=on-failure
+      Environment=KUBELET_IMAGE_TAG=v1.2.0_coreos.0
+      Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid
+      ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
+      ExecStart=/usr/lib64/coreos/kubelet-wrapper \
+        --api-servers=http://127.0.0.1:8080 \
+        --container-runtime=docker \
+        --allow-privileged=true \
+        --config=/etc/kubernetes/manifests \
+        --hostname-override $public_ipv4 \
+        --- --name=kubelet
+      ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
+  - name: kube-apiserver.service
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      After=docker.service etcd2.service
+
+      [Service]
+      Restart=on-failure
+      Environment=KUBELET_IMAGE_TAG=v1.2.0_coreos.0
+      Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-apiserver-pod.uuid
+      Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
+      ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-apiserver-pod.uuid
+      ExecStart=/usr/lib64/coreos/kubelet-wrapper \
+        apiserver \
+        --bind-address=0.0.0.0 \
+        --etcd-servers=http://127.0.0.1:4001 \
+        --service-cluster-ip-range=192.168.221.0/24 \
+        --insecure-bind-address=0.0.0.0 \
+        --admission-control="AlwaysAdmit" \
+        --client-ca-file=/etc/ssl/certs/ca.pem \
+        --basic-auth-file=/etc/kubernetes/basic-auth.csv \
+        --min-request-timeout=300 \
+        --tls-cert-file=/etc/ssl/certs/apiserver.pem \
+        --tls-private-key-file=/etc/ssl/certs/apiserver-key.pem \
+        --allow-privileged=true \
+        --v=4 \
+        --- --name=kube-apiserver
+      ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kube-apiserver-pod.uuid
+  - name: kube-proxy.service
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      After=kubelet.service
+
+      [Service]
+      Restart=on-failure
+      Environment=KUBELET_IMAGE_TAG=v1.2.0_coreos.0
+      Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-proxy-pod.uuid
+      Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
+      ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-proxy-pod.uuid
+      ExecStart=/usr/lib64/coreos/kubelet-wrapper \
+        proxy \
+        --master=http://127.0.0.1:8080 \
+        --- --name=kube-proxy
+      ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kube-proxy-pod.uuid
+  - name: kube-controller-manager.service
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      After=kube-apiserver.service
+
+      [Service]
+      Restart=on-failure
+      Environment=KUBELET_IMAGE_TAG=v1.2.0_coreos.0
+      Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-controller-manager-pod.uuid
+      Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
+      ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-controller-manager-pod.uuid
+      ExecStart=/usr/lib64/coreos/kubelet-wrapper \
+        controller-manager \
+        --master=http://127.0.0.1:8080 \
+        --service-account-private-key-file=/etc/ssl/certs/apiserver-key.pem \
+        --root-ca-file=/etc/ssl/certs/ca.pem \
+        --- --name=kube-controller-manager
+      ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kube-controller-manager-pod.uuid
+  - name: kube-scheduler.service
+    command: start
+    enable: true
+    content: |
+      [Unit]
+      After=kube-apiserver.service
+
+      [Service]
+      Restart=on-failure
+      Environment=KUBELET_IMAGE_TAG=v1.2.0_coreos.0
+      Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-scheduler-pod.uuid
+      Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
+      ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-scheduler-pod.uuid
+      ExecStart=/usr/lib64/coreos/kubelet-wrapper \
+        scheduler \
+        --master=http://127.0.0.1:8080 \
+        --leader-elect=true \
+        --- --name=kube-scheduler
+      ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kube-scheduler-pod.uuid
