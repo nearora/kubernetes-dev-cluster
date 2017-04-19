@@ -99,6 +99,7 @@ coreos:
       ExecStart=/usr/lib64/coreos/kubelet-wrapper \
         apiserver \
         --bind-address=0.0.0.0 \
+        --service-node-port-range=9000-9999 \
         --etcd-servers=http://127.0.0.1:4001 \
         --service-cluster-ip-range=192.168.221.0/24 \
         --insecure-bind-address=0.0.0.0 \
