@@ -1,5 +1,5 @@
 # Size of the CoreOS cluster created by Vagrant
-$num_instances=5
+$num_instances=3
 
 # Used to fetch a new discovery token for a cluster of size $num_instances
 $new_discovery_url="https://discovery.etcd.io/new?size=#{$num_instances}"
@@ -53,3 +53,7 @@ $update_channel='stable'
 
 $insert_vagrant_insecure_key = true
 $private_vm_network_prefix = "192.168.211"
+$starting_ip_address = 11
+
+# Node number is added to this and therefore we need to reduce this by one
+$starting_ip_address -= 1
