@@ -11,6 +11,7 @@ coreos:
     public-ip: "$public_ipv4"
   flannel:
     interface: "$public_ipv4"
+    etcd_endpoints: "http://192.168.211.11:2379,http://192.168.211.11:4001"
   units:
   - name: etcd2.service
     command: stop
@@ -24,14 +25,8 @@ coreos:
     command: stop
     enable: false
   - name: flanneld.service
-    drop-ins:
-    - name: 50-network-config.conf
-      content: |
-        [Service]
-        ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \
-          '{ "Network": "192.168.0.0/16", "SubnetLen": "24", "SubnetMin": "192.168.241.0" "SubnetMax": "192.168.250.0" }'
-    command: stop
-    enable: false
+    command: start
+    enable: true
   - name: docker-tcp.socket
     command: start
     enable: true
@@ -52,7 +47,8 @@ coreos:
     enable: true
     content: |
       [Unit]
-      After=docker.service
+      After=flanneld.service
+      Requires=flanneld.service
 
       [Service]
       Restart=on-failure
@@ -60,7 +56,7 @@ coreos:
       Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
       ExecStart=/usr/lib64/coreos/kubelet-wrapper \
-        --api-servers=http://192.168.211.101:8080 \
+        --api-servers=http://192.168.211.11:8080 \
         --container-runtime=docker \
         --allow-privileged=true \
         --config=/etc/kubernetes/manifests \
@@ -82,6 +78,6 @@ coreos:
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-proxy-pod.uuid
       ExecStart=/usr/lib64/coreos/kubelet-wrapper \
         proxy \
-        --master=http://192.168.211.101:8080 \
+        --master=http://192.168.211.11:8080 \
         --- --name=kube-proxy
       ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kube-proxy-pod.uuid

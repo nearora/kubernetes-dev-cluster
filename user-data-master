@@ -33,9 +33,9 @@ coreos:
       content: |
         [Service]
         ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \
-          '{ "Network": "192.168.0.0/16", "SubnetLen": "24", "SubnetMin": "192.168.241.0" "SubnetMax": "192.168.250.0" }'
-    command: stop
-    enable: false
+          '{ "Network": "192.168.0.0/16", "SubnetLen": 24, "SubnetMin": "192.168.241.0", "SubnetMax": "192.168.250.0" }'
+    command: start
+    enable: true
   - name: docker-tcp.socket
     command: start
     enable: true
@@ -56,7 +56,8 @@ coreos:
     enable: true
     content: |
       [Unit]
-      After=docker.service
+      After=flanneld.service
+      Requires=flanneld.service
 
       [Service]
       Restart=on-failure
@@ -68,7 +69,8 @@ coreos:
     enable: true
     content: |
       [Unit]
-      After=docker.service
+      After=flanneld.service
+      Requires=flanneld.service
 
       [Service]
       Restart=on-failure
@@ -88,7 +90,8 @@ coreos:
     enable: true
     content: |
       [Unit]
-      After=docker.service etcd2.service
+      After=flanneld.service etcd2.service
+      Requires=flanneld.service etcd2.service
 
       [Service]
       Restart=on-failure
@@ -100,7 +103,7 @@ coreos:
         apiserver \
         --bind-address=0.0.0.0 \
         --etcd-servers=http://127.0.0.1:4001 \
-        --service-cluster-ip-range=192.168.221.0/24 \
+        --service-cluster-ip-range=192.168.211.128/25 \
         --insecure-bind-address=0.0.0.0 \
         --admission-control="AlwaysAdmit" \
         --client-ca-file=/etc/ssl/certs/ca.pem \
