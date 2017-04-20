@@ -20,20 +20,27 @@ coreos:
     command: start
     enable: true
   - name: containerd.service
-    command: stop
-    enable: false
+    command: start
+    enable: true
   - name: etcd2.service
     command: start
+    enable: true
   - name: fleet.service
     command: stop
     enable: false
+  - name: docker.service
+    drop-ins:
+    - name: 90-dns-config.conf
+      content: |
+        [Service]
+        Environment=DOCKER_OPTS="--dns=10.0.2.3"
   - name: flanneld.service
     drop-ins:
     - name: 50-network-config.conf
       content: |
         [Service]
         ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config \
-          '{ "Network": "192.168.0.0/16", "SubnetLen": 24, "SubnetMin": "192.168.241.0", "SubnetMax": "192.168.250.0" }'
+          '{ "Network": "192.168.241.0/24", "SubnetLen": 27 }'
     command: start
     enable: true
   - name: docker-tcp.socket

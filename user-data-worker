@@ -17,13 +17,20 @@ coreos:
     command: stop
     enable: false
   - name: containerd.service
-    command: stop
-    enable: false
+    command: start
+    enable: true
   - name: etcd2.service
     command: start
+    enable: true
   - name: fleet.service
     command: stop
     enable: false
+  - name: docker.service
+    drop-ins:
+    - name: 90-dns-config.conf
+      content: |
+        [Service]
+        Environment=DOCKER_OPTS="--dns=10.0.2.3"
   - name: flanneld.service
     command: start
     enable: true
