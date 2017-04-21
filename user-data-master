@@ -81,7 +81,7 @@ coreos:
 
       [Service]
       Restart=on-failure
-      Environment=KUBELET_IMAGE_TAG=v1.4.9_coreos.0
+      Environment=KUBELET_IMAGE_TAG=v1.5.6_coreos.0
       Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kubelet-pod.uuid
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kubelet-pod.uuid
       ExecStart=/usr/lib64/coreos/kubelet-wrapper \
@@ -103,7 +103,7 @@ coreos:
 
       [Service]
       Restart=on-failure
-      Environment=KUBELET_IMAGE_TAG=v1.4.9_coreos.0
+      Environment=KUBELET_IMAGE_TAG=v1.5.6_coreos.0
       Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-apiserver-pod.uuid
       Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-apiserver-pod.uuid
@@ -133,7 +133,7 @@ coreos:
 
       [Service]
       Restart=on-failure
-      Environment=KUBELET_IMAGE_TAG=v1.4.9_coreos.0
+      Environment=KUBELET_IMAGE_TAG=v1.5.6_coreos.0
       Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-proxy-pod.uuid
       Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-proxy-pod.uuid
@@ -151,7 +151,7 @@ coreos:
 
       [Service]
       Restart=on-failure
-      Environment=KUBELET_IMAGE_TAG=v1.4.9_coreos.0
+      Environment=KUBELET_IMAGE_TAG=v1.5.6_coreos.0
       Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-controller-manager-pod.uuid
       Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-controller-manager-pod.uuid
@@ -171,7 +171,7 @@ coreos:
 
       [Service]
       Restart=on-failure
-      Environment=KUBELET_IMAGE_TAG=v1.4.9_coreos.0
+      Environment=KUBELET_IMAGE_TAG=v1.5.6_coreos.0
       Environment=RKT_RUN_ARGS=--uuid-file-save=/var/run/kube-scheduler-pod.uuid
       Environment=KUBELET_IMAGE_ARGS=--exec=/hyperkube
       ExecStartPre=-/usr/bin/rkt rm --uuid-file=/var/run/kube-scheduler-pod.uuid
