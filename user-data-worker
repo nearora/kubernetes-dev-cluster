@@ -68,6 +68,7 @@ coreos:
         --allow-privileged=true \
         --config=/etc/kubernetes/manifests \
         --hostname-override $public_ipv4 \
+        --cluster-dns 10.0.2.3 \
         --- --name=kubelet
       ExecStop=-/usr/bin/rkt stop --uuid-file=/var/run/kubelet-pod.uuid
   - name: kube-proxy.service
