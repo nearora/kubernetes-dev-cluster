@@ -1,0 +1,3 @@
+[submodule "vagrant/coreos-k8s-dev-cluster/coreos-vagrant"]
+	path = vagrant/coreos-k8s-dev-cluster/coreos-vagrant
+	url = https://github.com/nearora/coreos-vagrant.git
