@@ -1,4 +1,28 @@
 # CoreOS based Kubernetes cluster for development and testing
+<!-- TOC -->
+
+- [CoreOS based Kubernetes cluster for development and testing](#coreos-based-kubernetes-cluster-for-development-and-testing)
+    - [Prepare](#prepare)
+        - [Set Number of Nodes](#set-number-of-nodes)
+        - [Generate SSL Keys and Certificates for the Nodes](#generate-ssl-keys-and-certificates-for-the-nodes)
+    - [Use](#use)
+        - [Start Your Cluster](#start-your-cluster)
+        - [Stare in Awe and With Wonder](#stare-in-awe-and-with-wonder)
+        - [Check Cluster Status](#check-cluster-status)
+        - [SSH into a Node](#ssh-into-a-node)
+        - [Stop Your cluster](#stop-your-cluster)
+        - [Destroy Your Cluster](#destroy-your-cluster)
+        - [Reprovision](#reprovision)
+    - [Nodes](#nodes)
+    - [Services](#services)
+    - [Container Networking](#container-networking)
+    - [Setting Up More Than One Cluster](#setting-up-more-than-one-cluster)
+        - [Configure Node Subnet](#configure-node-subnet)
+            - [Simply Speaking...](#simply-speaking)
+        - [Service Cluster IP Addresses](#service-cluster-ip-addresses)
+        - [Change the Master IP in the Worker Configuration](#change-the-master-ip-in-the-worker-configuration)
+
+<!-- /TOC -->
 
 _The `Vagrantfile` in this directory is a symlink to the `Vagrantfile` in the `coreos-vagrant` submodule. Do not edit the `Vagrantfile` here._
 
