@@ -1,7 +1,7 @@
-# CoreOS based Kubernetes cluster for development and testing
+# CoreOS Based Kubernetes Cluster for Development and Testing
 <!-- TOC -->
 
-- [CoreOS based Kubernetes cluster for development and testing](#coreos-based-kubernetes-cluster-for-development-and-testing)
+- [CoreOS Based Kubernetes Cluster for Development and Testing](#coreos-based-kubernetes-cluster-for-development-and-testing)
     - [Prepare](#prepare)
         - [Set Number of Nodes](#set-number-of-nodes)
         - [Generate SSL Keys and Certificates for the Nodes](#generate-ssl-keys-and-certificates-for-the-nodes)
@@ -9,7 +9,11 @@
         - [Start Your Cluster](#start-your-cluster)
         - [Stare in Awe and With Wonder](#stare-in-awe-and-with-wonder)
         - [Check Cluster Status](#check-cluster-status)
-        - [SSH into a Node](#ssh-into-a-node)
+        - [SSH Into a Node](#ssh-into-a-node)
+        - [Port Forward to a Node](#port-forward-to-a-node)
+            - [Using SSH Command Line Options](#using-ssh-command-line-options)
+            - [Changing an Active SSH Connection](#changing-an-active-ssh-connection)
+            - [Make a Change to the _config.rb_](#make-a-change-to-the-_configrb_)
         - [Stop Your cluster](#stop-your-cluster)
         - [Destroy Your Cluster](#destroy-your-cluster)
         - [Reprovision](#reprovision)
@@ -69,13 +73,146 @@ Vagrant will download the requisite images and stand up number of nodes as you h
 
 `vagrant status`
 
-### SSH into a Node
+### SSH Into a Node
 
-`vagrant ssh _<node_name>`
+`vagrant ssh <node>`
 
 For example, to SSH into `core-01`, which is the master node, execute
 
 `vagrant ssh core-01`
+
+### Port Forward to a Node
+
+There are three ways to forward ports on your local machine where Vagrant is running, the _host_ to the nodes i.e. the _guests_. These are discussed below.
+
+#### Using SSH Command Line Options
+
+The command `vagrant ssh <node>` takes in parameters to pass to the SSH client. These parameters are made distinct from the Vagrant command by inserting a `--` between the command and the parameters to be passed to the SSH client.
+
+Assume for this example that you'd like to forward port `8080` on the host to the first node `core-01`. This is the node that runs the Kubernetes master. To effect this port forward, the command you'd execute would be
+
+```
+vagrant ssh core-01 -- -L8080:localhost:8080
+```
+
+**Before Forwarding Ports**
+```
+$ curl -o /dev/null -s -v http://localhost:8080
+* Rebuilt URL to: http://localhost:8080/
+*   Trying ::1...
+* TCP_NODELAY set
+* Connection failed
+* connect to ::1 port 8080 failed: Connection refused
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connection failed
+* connect to 127.0.0.1 port 8080 failed: Connection refused
+* Failed to connect to localhost port 8080: Connection refused
+* Closing connection 0
+```
+
+**After Forwarding Ports**
+```
+$ curl -o /dev/null -s -v http://localhost:8080
+* Rebuilt URL to: http://localhost:8080/
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+> GET / HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.51.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Content-Type: application/json
+< Date: Tue, 25 Apr 2017 04:32:05 GMT
+< Content-Length: 967
+<
+{ [967 bytes data]
+* Curl_http_done: called premature == 0
+* Connection #0 to host localhost left intact
+```
+
+#### Changing an Active SSH Connection
+
+You can change an active SSH connection that you started using `vagrant ssh <node>` by using the SSH escape sequence.
+
+After initiating an SSH connection
+
+```
+vagrant ssh core-01
+```
+
+... insert a new line and type in `~C`. Note the upper case of the letter `C`.
+
+```
+$
+$
+ssh> 
+```
+
+You can now modify the port forward settings of the active SSH connection. Enter
+
+```
+-L8080:localhost:8080
+
+```
+
+You'll need to hit _Enter_ twice.
+
+... to forward host port 8080 to port 8080 on the guest.
+
+To check if this worked, you can borrow the test demonstrated in [the previous section](#using-ssh-command-line-options)
+
+#### Make a Change to the _config.rb_
+
+Insert a variable `$forwarded_ports` in `config.rb` and assign it a map of all the ports you want forwarded. The _key_ is the port on the guests i.e. the nodes, and _value_ is the port on the host.
+
+```
+# Forward ports 2500 and 5300 on the host to ports 25 and 53 on the nodes
+
+$forwarded_ports = { "25" => "2500", "53" => "5300" }
+```
+
+These port forwards will be setup by Vagrant when you bring the environment up.
+
+Since configuration specified as above will apply to every node in the cluster, Vagrant will have to pick ports on the host so that each specified port on the nodes gets a unique port on the host. Therefore, you'll need to query Vagrant for each node to see which exact host ports have been picked to forward to the remote ports on the node. To do so, execute
+
+`vagrant port <node>`
+
+For example, to check ports forwarded to `core-01`, execute
+
+`vagrant port core-01`
+
+... which, considering the configuration above for `$forwarded_ports`, will output
+
+```
+The forwarded ports for the machine are listed below. Please note that
+these values may differ from values configured in the Vagrantfile if the
+provider supports automatic port collision detection and resolution.
+
+    22 (guest) => 2222 (host)
+    25 (guest) => 2500 (host)
+    53 (guest) => 5300 (host)
+```
+
+The same command executed for `core-02`
+
+`vagrant port core-02`
+
+... will output
+
+```
+The forwarded ports for the machine are listed below. Please note that
+these values may differ from values configured in the Vagrantfile if the
+provider supports automatic port collision detection and resolution.
+
+    22 (guest) => 2202 (host)
+    25 (guest) => 2200 (host)
+    53 (guest) => 2201 (host)
+```
+
+As you can see, while the guest ports are the same, the host ports are different.
 
 ### Stop Your cluster
 
@@ -89,7 +226,7 @@ To restart your cluster, execute `vagrant up`. VirtualBox doesn't bring the VMs 
 
 This will ask you to confirm deletion of every node. You can choose to destroy a single node by executing
 
-`vagrant destroy _<node_name>_`
+`vagrant destroy <node>`
 
 You can destroy everything and not have `vagrant` ask you by executing
 
@@ -99,7 +236,7 @@ You can destroy everything and not have `vagrant` ask you by executing
 
 You can reprovision any single node by executing
 
-`vagrant up --provision _<node_name>_`
+`vagrant up --provision <node>`
 
 To provision everything again, execute
 
