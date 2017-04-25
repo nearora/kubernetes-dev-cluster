@@ -36,7 +36,9 @@ The [submodule](https://coreos.com/os/docs/latest/booting-on-vagrant.html) we're
 
 After cloning this repository, from the directory where you find _this_ file, execute
 
-`git submodule update --init --recursive`
+```
+git submodule update --init --recursive
+```
 
 This should populate the directory `coreos-vagrant` with files from its source repository including the `Vagrantfile` that we require.
 
@@ -53,7 +55,9 @@ $num_instances=5
 
 Once you have decided the number of nodes, execute `create-keys.sh` located in the current directory with _number of nodes_ as the first parameter.
 
-`./create-keys.sh 5`
+```
+./create-keys.sh 5
+```
 
 ## Use
 
@@ -63,7 +67,9 @@ To use each distinct cluster, change into the directory representing that cluste
 
 Be prepared to be amazed and execute
 
-`vagrant up`
+```
+vagrant up
+```
 
 ### Stare in Awe and With Wonder
 
@@ -71,15 +77,21 @@ Vagrant will download the requisite images and stand up number of nodes as you h
 
 ### Check Cluster Status
 
-`vagrant status`
+```
+vagrant status
+```
 
 ### SSH Into a Node
 
-`vagrant ssh <node>`
+```
+vagrant ssh <node>
+```
 
 For example, to SSH into `core-01`, which is the master node, execute
 
-`vagrant ssh core-01`
+```
+vagrant ssh core-01
+```
 
 ### Port Forward to a Node
 
@@ -162,7 +174,7 @@ You'll need to hit _Enter_ twice.
 
 ... to forward host port 8080 to port 8080 on the guest.
 
-To check if this worked, you can borrow the test demonstrated in [the previous section](#using-ssh-command-line-options)
+To check if this worked, you can use the test demonstrated in [the previous section](#using-ssh-command-line-options)
 
 #### Make a Change to _config.rb_
 
@@ -178,11 +190,15 @@ These port forwards will be setup by Vagrant when you bring the environment up.
 
 Since configuration specified as above will apply to every node in the cluster, Vagrant will have to pick ports on the host so that each specified port on the nodes gets a unique port on the host. Therefore, you'll need to query Vagrant for each node to see which exact host ports have been picked to forward to the remote ports on the node. To do so, execute
 
-`vagrant port <node>`
+```
+vagrant port <node>
+```
 
 For example, to check ports forwarded to `core-01`, execute
 
-`vagrant port core-01`
+```
+vagrant port core-01
+```
 
 ... which, considering the configuration above for `$forwarded_ports`, will output
 
@@ -198,7 +214,9 @@ provider supports automatic port collision detection and resolution.
 
 The same command executed for `core-02`
 
-`vagrant port core-02`
+```
+vagrant port core-02
+```
 
 ... will output
 
@@ -216,31 +234,43 @@ As you can see, while the guest ports are the same, the host ports are different
 
 ### Stop Your cluster
 
-`vagrant halt`
+```
+vagrant halt
+```
 
 To restart your cluster, execute `vagrant up`. VirtualBox doesn't bring the VMs back up nicely. It is better in this case to leave the cluster running or to destroy and reprovision.
 
 ### Destroy Your Cluster
 
-`vagrant destroy`
+```
+vagrant destroy
+```
 
 This will ask you to confirm deletion of every node. You can choose to destroy a single node by executing
 
-`vagrant destroy <node>`
+```
+vagrant destroy <node>
+```
 
 You can destroy everything and not have `vagrant` ask you by executing
 
-`vagrant destroy -f`
+```
+vagrant destroy -f
+```
 
 ### Reprovision
 
 You can reprovision any single node by executing
 
-`vagrant up --provision <node>`
+```
+vagrant up --provision <node>
+```
 
 To provision everything again, execute
 
-`vagrant up --provision`
+```
+vagrant up --provision
+```
 
 ## Nodes
 
