@@ -13,7 +13,7 @@
         - [Port Forward to a Node](#port-forward-to-a-node)
             - [Using SSH Command Line Options](#using-ssh-command-line-options)
             - [Changing an Active SSH Connection](#changing-an-active-ssh-connection)
-            - [Make a Change to the _config.rb_](#make-a-change-to-the-_configrb_)
+            - [Make a Change to _config.rb_](#make-a-change-to-_configrb_)
         - [Stop Your cluster](#stop-your-cluster)
         - [Destroy Your Cluster](#destroy-your-cluster)
         - [Reprovision](#reprovision)
@@ -164,9 +164,9 @@ You'll need to hit _Enter_ twice.
 
 To check if this worked, you can borrow the test demonstrated in [the previous section](#using-ssh-command-line-options)
 
-#### Make a Change to the _config.rb_
+#### Make a Change to _config.rb_
 
-Insert a variable `$forwarded_ports` in `config.rb` and assign it a map of all the ports you want forwarded. The _key_ is the port on the guests i.e. the nodes, and _value_ is the port on the host.
+Change the variable `$forwarded_ports` in `config.rb` and assign it a map of all ports you want forwarded. The _key_ is the port on the guests i.e. the nodes, and _value_ is the port on the host.
 
 ```
 # Forward ports 2500 and 5300 on the host to ports 25 and 53 on the nodes
