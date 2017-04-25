@@ -9,6 +9,8 @@ $insert_vagrant_insecure_key = true
 $private_vm_network_prefix = "192.168.211"
 $starting_ip_address = 11
 
+$forwarded_ports = {}
+
 # Used to fetch a new discovery token for a cluster of size $num_instances
 $new_discovery_url="https://discovery.etcd.io/new?size=#{$num_instances}"
 
